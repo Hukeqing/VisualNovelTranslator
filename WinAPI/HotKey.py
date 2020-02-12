@@ -190,13 +190,15 @@ class HotKey:
                             self.thread_it(self.keyList.func[msg.wParam])
                     self.user32.TranslateMessage(ctypes.byref(msg))
                     self.user32.DispatchMessageA(ctypes.byref(msg))
-        finally:
-            for i in range(self.keyList.cnt):
-                self.user32.UnregisterHotKey(None, i)
-                # 必须得释放热键，否则下次就会注册失败，所以当程序异常退出，没有释放热键，
-                # 那么下次很可能就没办法注册成功了，这时可以换一个热键测试
+        except Exception as e:
+            print(e)
+            exit(0)
 
     def stop(self):
+        # 必须得释放热键，否则下次就会注册失败，所以当程序异常退出，没有释放热键，
+        # 那么下次很可能就没办法注册成功了，这时可以换一个热键测试
+        for i in range(self.keyList.cnt):
+            self.user32.UnregisterHotKey(None, i)
         self.end = True
 
 

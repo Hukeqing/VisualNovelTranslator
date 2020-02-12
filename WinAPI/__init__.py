@@ -1,6 +1,6 @@
 from WinAPI.HotKey import *
-from WinAPI.HTTP import *
+from WinAPI.HttpClient import *
 from WinAPI.ScreenCut import *
 
 
-__all__ = ['KeyCode', 'HotKey', 'HTTP', 'ScreenCut']
+__all__ = ['KeyCode', 'HotKey', 'NetWorkFunc', 'HttpClient', 'HttpQuests', 'ScreenCut']

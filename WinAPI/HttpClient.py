@@ -1,12 +1,16 @@
 # coding=utf-8
+import base64
 import hashlib
 import http.client
 import json
 import random
 import urllib.parse
+from io import BytesIO
+
+import requests
 
 
-class HTTP:
+class NetWorkFunc:
     @staticmethod
     def md5(value):
         return hashlib.md5(value.encode()).hexdigest()
@@ -15,6 +19,15 @@ class HTTP:
     def random(min_value, max_value):
         return random.randint(min_value, max_value)
 
+    @staticmethod
+    def base64(img):
+        img_buffer = BytesIO()
+        img.save(img_buffer, format='JPEG')
+        byte_data = img_buffer.getvalue()
+        return base64.b64encode(byte_data)
+
+
+class HttpClient:
     def __init__(self):
         self.host = None
         self.url = None
@@ -64,16 +77,38 @@ class HTTP:
             self.httpClient.close()
 
 
+class HttpQuests:
+    def __init__(self):
+        self.params = dict()
+        self.headers = dict()
+        self.url = ""
+
+    def set_param(self, key, value):
+        self.params[key] = value
+
+    def set_head(self, key, value):
+        self.headers[key] = value
+
+    def set_url(self, url):
+        self.url = url
+
+    def post(self):
+        response = requests.post(self.url, data=self.params, headers=self.headers)
+        if response:
+            return response.json()
+        return None
+
+
 def test_http():
     f = open('../setting.json', 'r')
     data = json.load(f)
     appid = data['translate']['appid']
     secretKey = data['translate']['secretKey']
-    h = HTTP()
+    h = HttpClient()
     h.set_host('api.fanyi.baidu.com')
     h.set_url('/api/trans/vip/translate')
-    param = {'appid': appid, 'q': input(), 'from': 'auto', 'to': 'zh', 'salt': h.random(32768, 65536)}
-    sign = h.md5(appid + param['q'] + str(param['salt']) + secretKey)
+    param = {'appid': appid, 'q': input(), 'from': 'auto', 'to': 'zh', 'salt': NetWorkFunc.random(32768, 65536)}
+    sign = NetWorkFunc.md5(appid + param['q'] + str(param['salt']) + secretKey)
     param['sign'] = sign
     h.set_param(param)
     h.connect()
