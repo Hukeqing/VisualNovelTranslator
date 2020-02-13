@@ -34,8 +34,9 @@ class ScreenCut:
     def add_mouse_point(self):
         self.add_point(pag.position())
 
-    def set_rect(self, left, top, right, bottom):
-        self.rect = (left, top, right, bottom)
+    def set_rect(self, x1, y1, x2, y2):
+        self.rect = (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+        self.rect = (self.rect[0], self.rect[1], self.rect[2] - self.rect[0], self.rect[3] - self.rect[1])
 
     def show_region(self, outline_color='red'):
         screens_im = self.grab()

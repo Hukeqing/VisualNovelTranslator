@@ -19,11 +19,11 @@ mainWin.title('Visual Novel Translator')
 # mainWin.configure(background='red')
 mainWin.wm_attributes('-topmost', 1)
 mainWin.wm_attributes("-alpha", 0.8)
-mainWin.geometry('1000x200+300+300')
+mainWin.geometry('1000x150+300+300')
 
-ans_label = tk.Text(mainWin, background="#cccccc", height=10, font=('Microsoft YaHei', 10))
-ans_label.place(relx=0.5, rely=0.5, anchor='center')
-ans_label.config(state='disabled')
+ans_label = tk.Label(mainWin, background="#cccccc", font=('Microsoft YaHei', 10))
+ans_label.place(relx=0.5, rely=0.5, anchor='center', width=400, height=125)
+# ans_label.config(state='disabled')
 
 menubar = tk.Menu(mainWin)
 mainWin.config(menu=menubar)
@@ -65,14 +65,14 @@ fromCombobox = tk.ttk.Combobox(mainWin, textvariable=fromString, width=10)
 fromCombobox['value'] = tuple(lan.keys())
 fromCombobox.current(1)
 fromCombobox.bind("<<ComboboxSelected>>", change_from)
-fromCombobox.place(relx=0.5, rely=0.5, anchor='center', x=-400, y=-50)
+fromCombobox.place(relx=0.5, rely=0.5, anchor='center', x=-400, y=-30)
 
 toString = tk.StringVar()
 toCombobox = tk.ttk.Combobox(mainWin, textvariable=toString, width=10)
 toCombobox['value'] = tuple(lan.keys())
 toCombobox.current(0)
 toCombobox.bind("<<ComboboxSelected>>", change_to)
-toCombobox.place(relx=0.5, rely=0.5, anchor='center', x=-400, y=50)
+toCombobox.place(relx=0.5, rely=0.5, anchor='center', x=-400, y=30)
 
 
 def quit_app():
@@ -104,10 +104,11 @@ def trans():
         for item in response['words_result']:
             words += item['words'] + '\n'
     if words == "":
-        ans_label.config(state='normal')
-        ans_label.delete(1.0, tk.END)
-        ans_label.insert(tk.END, 'Distinguish No Words!\n')
-        ans_label.config(state='disabled')
+        # ans_label.config(state='normal')
+        # ans_label.delete(1.0, tk.END)
+        # ans_label.insert(tk.END, 'Distinguish No Words!\n')
+        # ans_label.config(state='disabled')
+        ans_label.config(text='Distinguish No Words!')
         return
     salt = NetWorkFunc.random(32768, 65536)
     sign = NetWorkFunc.md5(appid + words + str(salt) + secretKey)
@@ -119,10 +120,11 @@ def trans():
     if 'trans_result' in res.keys():
         for item in res['trans_result']:
             ans += item['dst'] + '\n'
-    ans_label.config(state='normal')
-    ans_label.delete(1.0, tk.END)
-    ans_label.insert(tk.END, "Src: " + words + "\nTra: " + ans)
-    ans_label.config(state='disabled')
+    # ans_label.config(state='normal')
+    # ans_label.delete(1.0, tk.END)
+    # ans_label.insert(tk.END, "Src: " + words + "\nTra: " + ans)
+    # ans_label.config(state='disabled')
+    ans_label.config(text='原文: ' + words + '\n百度翻译: ' + ans)
 
 
 def api_init():
@@ -155,7 +157,7 @@ def api_init():
     ocr.set_head('content-type', 'application/x-www-form-urlencoded')
 
 
-def on_press(x):
+def on_press(event):
     global on_drop
     global pressMousePosition
     global rect
@@ -163,10 +165,10 @@ def on_press(x):
     pressMousePosition = screen.get_mouse_position()
     screen.add_mouse_point()
     print('Press')
-    rect_canvas.delete('rect')
-    rect = rect_canvas.create_rectangle(pressMousePosition.x, pressMousePosition.y,
-                                        pressMousePosition.x, pressMousePosition.y,
-                                        tags='rect', outline='red', width=3)
+    if rect is None:
+        rect = rect_canvas.create_rectangle(pressMousePosition.x, pressMousePosition.y,
+                                            pressMousePosition.x, pressMousePosition.y,
+                                            tags='rect', outline='red', width=3)
 
 
 def on_drop_event(event):
@@ -174,35 +176,55 @@ def on_drop_event(event):
                               event.x, event.y))
 
 
-def on_release(x):
+@log('set rect')
+def on_release(event):
     global on_drop
-    global img_label
+    # global img_label
+    global pressMousePosition
+    if pressMousePosition is None:
+        return
     on_drop = False
     print('Release')
-    rect_win.attributes("-fullscreen", False)
     screen.add_mouse_point()
-    rect_win.withdraw()
+    # rect_win.withdraw()
     background_win.withdraw()
     mainWin.deiconify()
-    img_label.destroy()
+    # img_label.destroy()
     img_label = None
+    screen.clear()
+    screen.set_rect(pressMousePosition.x, pressMousePosition.y,
+                    event.x_root, event.y_root)
+    pressMousePosition = None
+
+
+def on_exit(event):
+    # global img_label
+    global pressMousePosition
+    print('Exit set')
+    # rect_win.withdraw()
+    background_win.withdraw()
+    mainWin.deiconify()
+    # img_label.destroy()
+    # img_label = None
+    pressMousePosition = None
 
 
 on_drop = False
-rect_win = tk.Toplevel()
-rect_win.attributes("-fullscreen", True)
+# rect_win = tk.Toplevel()
+# rect_win.attributes("-fullscreen", True)
 background_win = tk.Toplevel()
 background_win.attributes("-fullscreen", True)
 # rect_win.attributes("-alpha", 0.5)
 background_win.attributes("-alpha", 0.5)
-rect_win.withdraw()
+# rect_win.withdraw()
 background_win.withdraw()
-rect_win.attributes('-topmost', 1)
+# rect_win.attributes('-topmost', 1)
 background_win.attributes('-topmost', 1)
 background_win.bind('<ButtonPress-1>', func=on_press)
+background_win.bind('<ButtonPress-3>', func=on_exit)
 background_win.bind('<ButtonRelease-1>', func=on_release)
 background_win.bind('<B1-Motion>', func=on_drop_event)
-img_label = None
+# img_label = None
 rect_canvas = tk.Canvas(background_win, bg='grey')
 rect_canvas.pack()
 pressMousePosition = None
@@ -210,23 +232,21 @@ rect = None
 
 
 def set_rect():
-    global rect_win
+    # global rect_win
     global background_win
-    global img_label
-    screen.clear()
+    # global img_label
     mainWin.withdraw()
     # time.sleep(0.3)
     img = screen.grab()
-    rect_win.deiconify()
+    # rect_win.deiconify()
     background_win.deiconify()
     img = ImageTk.PhotoImage(img)
     rect_canvas.pack_forget()
     rect_canvas.config(width=img.width(), height=img.height())
     rect_canvas.pack()
-    img_label = tkinter.Label(rect_win, image=img)
-    img_label.pack()
-    time.sleep(0.1)
-    rect_win.mainloop()
+    # img_label = tkinter.Label(rect_win, image=img)
+    # img_label.pack()
+    # rect_win.mainloop()
 
 
 def show_log():
