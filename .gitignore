@@ -7,4 +7,3 @@ build
 __pycache__
 test.py
 *.jpg
-main.py

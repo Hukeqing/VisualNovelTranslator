@@ -7,6 +7,10 @@ class ScreenCut:
     def grab(image_filename=None, rect=None):
         return pag.screenshot(imageFilename=image_filename, region=rect)
 
+    @staticmethod
+    def get_mouse_position():
+        return pag.position()
+
     def __init__(self):
         self.point = [set(), set()]
         self.rect = None
@@ -22,6 +26,7 @@ class ScreenCut:
     def clear(self):
         self.point[0].clear()
         self.point[1].clear()
+        self.rect = None
 
     def cut(self, file=None):
         return self.grab(file, self.rect)
@@ -29,11 +34,15 @@ class ScreenCut:
     def add_mouse_point(self):
         self.add_point(pag.position())
 
+    def set_rect(self, left, top, right, bottom):
+        self.rect = (left, top, right, bottom)
+
     def show_region(self, outline_color='red'):
         screens_im = self.grab()
         draw = imgDraw.Draw(screens_im)
-        region = (self.rect[0], self.rect[1], self.rect[2] + self.rect[0], self.rect[3] + self.rect[1])
-        draw.rectangle(region, outline=outline_color)
+        if self.rect is not None:
+            region = (self.rect[0], self.rect[1], self.rect[2] + self.rect[0], self.rect[3] + self.rect[1])
+            draw.rectangle(region, outline=outline_color)
         screens_im.show()
 
 
