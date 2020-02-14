@@ -104,10 +104,6 @@ def trans():
         for item in response['words_result']:
             words += item['words'] + '\n'
     if words == "":
-        # ans_label.config(state='normal')
-        # ans_label.delete(1.0, tk.END)
-        # ans_label.insert(tk.END, 'Distinguish No Words!\n')
-        # ans_label.config(state='disabled')
         ans_label.config(text='Distinguish No Words!')
         return
     salt = NetWorkFunc.random(32768, 65536)
@@ -120,10 +116,6 @@ def trans():
     if 'trans_result' in res.keys():
         for item in res['trans_result']:
             ans += item['dst'] + '\n'
-    # ans_label.config(state='normal')
-    # ans_label.delete(1.0, tk.END)
-    # ans_label.insert(tk.END, "Src: " + words + "\nTra: " + ans)
-    # ans_label.config(state='disabled')
     ans_label.config(text='原文: ' + words + '\n百度翻译: ' + ans)
 
 
@@ -210,21 +202,15 @@ def on_exit(event):
 
 
 on_drop = False
-# rect_win = tk.Toplevel()
-# rect_win.attributes("-fullscreen", True)
 background_win = tk.Toplevel()
 background_win.attributes("-fullscreen", True)
-# rect_win.attributes("-alpha", 0.5)
 background_win.attributes("-alpha", 0.5)
-# rect_win.withdraw()
 background_win.withdraw()
-# rect_win.attributes('-topmost', 1)
 background_win.attributes('-topmost', 1)
 background_win.bind('<ButtonPress-1>', func=on_press)
 background_win.bind('<ButtonPress-3>', func=on_exit)
 background_win.bind('<ButtonRelease-1>', func=on_release)
 background_win.bind('<B1-Motion>', func=on_drop_event)
-# img_label = None
 rect_canvas = tk.Canvas(background_win, bg='grey')
 rect_canvas.pack()
 pressMousePosition = None
@@ -232,21 +218,14 @@ rect = None
 
 
 def set_rect():
-    # global rect_win
     global background_win
-    # global img_label
     mainWin.withdraw()
-    # time.sleep(0.3)
     img = screen.grab()
-    # rect_win.deiconify()
     background_win.deiconify()
     img = ImageTk.PhotoImage(img)
     rect_canvas.pack_forget()
     rect_canvas.config(width=img.width(), height=img.height())
     rect_canvas.pack()
-    # img_label = tkinter.Label(rect_win, image=img)
-    # img_label.pack()
-    # rect_win.mainloop()
 
 
 def show_log():
@@ -257,9 +236,41 @@ def show_log():
     log_win.mainloop()
 
 
+def set_alpha(x):
+    global mainWin_alpha
+    mainWin_alpha = setting_scale.get() / 100
+    mainWin.wm_attributes("-alpha", mainWin_alpha)
+
+
+def set_cb():
+    mainWin.wm_attributes('-topmost', mainWin_top.get())
+
+
+mainWin_alpha = 0.8
+mainWin_top = None
+setting_scale = None
+
+
+def setting():
+    global mainWin_top
+    global setting_scale
+    setting_win = tk.Toplevel()
+    setting_win.geometry('300x150+100+100')
+    setting_scale = tk.Scale(setting_win, from_=0, to=100, orient='horizontal', command=set_alpha)
+    setting_scale.place(relx=0.5, rely=0.5, anchor='center', y=-15, x=20, width=200, height=45)
+    setting_label = tk.Label(setting_win, text='不透明度')
+    setting_label.place(relx=0.5, rely=0.5, anchor='center', y=-5, x=-120, height=45)
+    mainWin_top = tk.IntVar()
+    setting_cb = tk.Checkbutton(setting_win, text='锁定前置窗口', variable=mainWin_top, command=set_cb)
+    setting_cb.select()
+    setting_cb.place(relx=0.5, rely=0.5, anchor='center', y=20, width=100)
+    setting_scale.set(mainWin_alpha * 100)
+
+
 menubar.add_command(label='Set Rect', command=set_rect)
 menubar.add_command(label='Show Rect', command=show)
 menubar.add_command(label='Translate', command=trans)
+menubar.add_command(label='Setting', command=setting)
 menubar.add_command(label='Log', command=show_log)
 api_init()
 
