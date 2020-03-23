@@ -1,16 +1,16 @@
 import json
+import time
 import tkinter as tk
 import tkinter.ttk
-import time
 
-import requests
 from PIL import ImageTk
 
+import OCR
 from SystemAPI import *
 
 screen = ScreenCut()
 translate = HttpClient()
-ocr = HttpQuests()
+# ocr = HttpQuests()
 
 lan = {'中文': ('CHN_ENG', 'zh'), '日语': ('JAP', 'jp'), '英语': ('ENG', 'en'), '韩语': ('KOR', 'kor')}
 
@@ -34,6 +34,8 @@ appid = ""
 secretKey = ""
 fromLag = ""
 
+baiduOCR: OCR.BaiduOCR
+
 
 def log(text):
     def decorator(func):
@@ -50,7 +52,7 @@ def log(text):
 @log('From Changed')
 def change_from(x):
     cur = lan[fromString.get()]
-    ocr.set_param('language_type', cur[0])
+    # ocr.set_param('language_type', cur[0])
     translate.add_param('from', cur[1])
 
 
@@ -96,13 +98,14 @@ def show():
 @log('Translate')
 def trans():
     img = screen.cut()
-    ocr.set_param('image', NetWorkFunc.base64(img))
-    response = ocr.post()
-    words = ""
-    if response is not None and 'words_result' in response.keys():
-        print(response)
-        for item in response['words_result']:
-            words += item['words'] + '\n'
+
+    # ocr.set_param('image', NetWorkFunc.base64(img))
+    # response = ocr.post()
+    words = baiduOCR.get_ans(img)
+    # if response is not None and 'words_result' in response.keys():
+    #     print(response)
+    #     for item in response['words_result']:
+    #         words += item['words'] + '\n'
     if words == "":
         ans_label.config(text='Distinguish No Words!')
         return
@@ -127,14 +130,15 @@ def api_init():
     appid = id['translate']['appid']
     global secretKey
     secretKey = id['translate']['secretKey']
-
-    request_url = "https://aip.baidubce.com/oauth/2.0/token"
-    params = {'grant_type': 'client_credentials', 'client_id': id['OCR']['apiKey'],
-              'client_secret': id['OCR']['SecretKey']}
-    response = requests.post(request_url, data=params)
-    access_token = ""
-    if response:
-        access_token = response.json()['access_token']
+    global baiduOCR
+    baiduOCR = OCR.BaiduOCR(id['OCR']['apiKey'], id['OCR']['SecretKey'])
+    # request_url = "https://aip.baidubce.com/oauth/2.0/token"
+    # params = {'grant_type': 'client_credentials', 'client_id': id['OCR']['apiKey'],
+    #           'client_secret': id['OCR']['SecretKey']}
+    # response = requests.post(request_url, data=params)
+    # access_token = ""
+    # if response:
+    #     access_token = response.json()['access_token']
 
     translate.set_host('api.fanyi.baidu.com')
     translate.set_url('/api/trans/vip/translate')
@@ -144,9 +148,9 @@ def api_init():
     translate.add_param('from', lan[fromString.get()][1])
     translate.add_param('to', lan[toString.get()][1])
 
-    ocr.set_url('https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=' + access_token)
-    ocr.set_param('language_type', lan[fromString.get()][0])
-    ocr.set_head('content-type', 'application/x-www-form-urlencoded')
+    # ocr.set_url('https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=' + access_token)
+    # ocr.set_param('language_type', lan[fromString.get()][0])
+    # ocr.set_head('content-type', 'application/x-www-form-urlencoded')
 
 
 def on_press(event):

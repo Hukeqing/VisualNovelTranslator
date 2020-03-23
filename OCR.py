@@ -1,10 +1,10 @@
 import requests
 
-import SystemAPI.HttpClient as Hc
+from SystemAPI import *
 
-md5 = Hc.NetWorkFunc.md5
-rand = Hc.NetWorkFunc.random
-base64 = Hc.NetWorkFunc.base64
+md5 = NetWorkFunc.md5
+rand = NetWorkFunc.random
+base64 = NetWorkFunc.base64
 
 
 class BaiduOCR:
@@ -14,7 +14,7 @@ class BaiduOCR:
         self.api_key = api_key
         self.secret_key = secret_key
         self.access_token = None
-        self.ocr = Hc.HttpQuests()
+        self.ocr = HttpQuests()
         self.init()
 
     def init(self):
