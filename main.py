@@ -5,7 +5,7 @@ import tkinter.ttk
 
 from PIL import ImageTk
 
-import OCR
+from Modular import OCR
 from SystemAPI import *
 
 screen = ScreenCut()
