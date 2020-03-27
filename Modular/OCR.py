@@ -43,3 +43,5 @@ class BaiduOCR:
             for item in response['words_result']:
                 words += item['words'] + '\n'
             return words
+        else:
+            raise ConnectionError()

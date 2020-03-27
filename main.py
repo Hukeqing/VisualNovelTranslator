@@ -120,6 +120,7 @@ def trans():
         for item in res['trans_result']:
             ans += item['dst'] + '\n'
     ans_label.config(text='原文: ' + words + '\n百度翻译: ' + ans)
+    # print('原文: ' + words + '\n百度翻译: ' + ans)
 
 
 def api_init():
