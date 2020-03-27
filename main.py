@@ -22,13 +22,18 @@ mainWin.wm_attributes("-alpha", 0.8)
 mainWin.geometry('1000x150+300+300')
 
 ans_label = tk.Label(mainWin, background="#cccccc", font=('Microsoft YaHei', 10))
-ans_label.place(relx=0.5, rely=0.5, anchor='center', width=400, height=125)
+ans_label.place(relx=0.5, rely=0.5, anchor='center', width=800, height=125)
 # ans_label.config(state='disabled')
 
 menubar = tk.Menu(mainWin)
 mainWin.config(menu=menubar)
 
 log_variable = tk.StringVar()
+
+fromString = tk.StringVar()
+fromString.set('日语')
+toString = tk.StringVar()
+toString.set('中文')
 
 appid = ""
 secretKey = ""
@@ -60,21 +65,6 @@ def change_from(x):
 def change_to(x):
     cur = lan[toString.get()]
     translate.add_param('to', cur[1])
-
-
-fromString = tk.StringVar()
-fromCombobox = tk.ttk.Combobox(mainWin, textvariable=fromString, width=10)
-fromCombobox['value'] = tuple(lan.keys())
-fromCombobox.current(1)
-fromCombobox.bind("<<ComboboxSelected>>", change_from)
-fromCombobox.place(relx=0.5, rely=0.5, anchor='center', x=-400, y=-30)
-
-toString = tk.StringVar()
-toCombobox = tk.ttk.Combobox(mainWin, textvariable=toString, width=10)
-toCombobox['value'] = tuple(lan.keys())
-toCombobox.current(0)
-toCombobox.bind("<<ComboboxSelected>>", change_to)
-toCombobox.place(relx=0.5, rely=0.5, anchor='center', x=-400, y=30)
 
 
 def quit_app():
@@ -262,14 +252,26 @@ def setting():
     setting_win = tk.Toplevel()
     setting_win.geometry('300x150+100+100')
     setting_scale = tk.Scale(setting_win, from_=0, to=100, orient='horizontal', command=set_alpha)
-    setting_scale.place(relx=0.5, rely=0.5, anchor='center', y=-15, x=20, width=200, height=45)
+    setting_scale.place(relx=0.5, rely=0.5, anchor='center', y=30, x=20, width=200, height=45)
     setting_label = tk.Label(setting_win, text='不透明度')
-    setting_label.place(relx=0.5, rely=0.5, anchor='center', y=-5, x=-120, height=45)
+    setting_label.place(relx=0.5, rely=0.5, anchor='center', y=30, x=-120, height=45)
     mainWin_top = tk.IntVar()
     setting_cb = tk.Checkbutton(setting_win, text='锁定前置窗口', variable=mainWin_top, command=set_cb)
     setting_cb.select()
-    setting_cb.place(relx=0.5, rely=0.5, anchor='center', y=20, width=100)
+    setting_cb.place(relx=0.5, rely=0.5, anchor='center', y=10, width=100)
     setting_scale.set(mainWin_alpha * 100)
+
+    from_combobox = tk.ttk.Combobox(setting_win, textvariable=fromString, width=10)
+    from_combobox['value'] = tuple(lan.keys())
+    from_combobox.current(1)
+    from_combobox.bind("<<ComboboxSelected>>", change_from)
+    from_combobox.place(relx=0.5, rely=0.5, anchor='center', y=-45)
+
+    to_combobox = tk.ttk.Combobox(setting_win, textvariable=toString, width=10)
+    to_combobox['value'] = tuple(lan.keys())
+    to_combobox.current(0)
+    to_combobox.bind("<<ComboboxSelected>>", change_to)
+    to_combobox.place(relx=0.5, rely=0.5, anchor='center', y=-20)
 
 
 menubar.add_command(label='Set Rect', command=set_rect)

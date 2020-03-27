@@ -38,10 +38,8 @@ class BaiduOCR:
     def get_ans(self, img):
         self.ocr.set_param('image', base64(img))
         response = self.ocr.post()
+        words = str()
         if response and 'words_result' in response.keys():
-            words = str()
             for item in response['words_result']:
-                words += item['words'] + '\n'
-            return words
-        else:
-            raise ConnectionError()
+                words += item['words']
+        return words
