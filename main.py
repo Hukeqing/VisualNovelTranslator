@@ -5,11 +5,11 @@ import tkinter.ttk
 
 from PIL import ImageTk
 
-from Modular import OCR
+from Modular import OCR, Translate
 from SystemAPI import *
 
 screen = ScreenCut()
-translate = HttpClient()
+# translate = HttpClient()
 # ocr = HttpQuests()
 
 lan = {'中文': ('CHN_ENG', 'zh'), '日语': ('JAP', 'jp'), '英语': ('ENG', 'en'), '韩语': ('KOR', 'kor')}
@@ -21,7 +21,7 @@ mainWin.wm_attributes('-topmost', 1)
 mainWin.wm_attributes("-alpha", 0.8)
 mainWin.geometry('1000x150+300+300')
 
-ans_label = tk.Label(mainWin, background="#cccccc", font=('Microsoft YaHei', 10))
+ans_label = tk.Label(mainWin, background="#cccccc", font=('Microsoft YaHei', 10), anchor='center', justify='center')
 ans_label.place(relx=0.5, rely=0.5, anchor='center', width=800, height=125)
 # ans_label.config(state='disabled')
 
@@ -40,6 +40,7 @@ secretKey = ""
 fromLag = ""
 
 baiduOCR: OCR.BaiduOCR
+baiduTrans: Translate.BaiduTrans
 
 
 def log(text):
@@ -58,18 +59,22 @@ def log(text):
 def change_from(x):
     cur = lan[fromString.get()]
     # ocr.set_param('language_type', cur[0])
-    translate.add_param('from', cur[1])
+    # translate.add_param('from', cur[1])
+    baiduOCR.change_lan(cur[1])
+    baiduTrans.set_from_lan(cur[1])
 
 
 @log('To Changed')
 def change_to(x):
     cur = lan[toString.get()]
-    translate.add_param('to', cur[1])
+    # translate.add_param('to', cur[1])
+    baiduTrans.set_to_lan(cur[1])
 
 
 def quit_app():
     mainWin.quit()
-    translate.close()
+    # translate.close()
+    baiduTrans.close()
     exit(0)
 
 
@@ -99,16 +104,17 @@ def trans():
     if words == "":
         ans_label.config(text='Distinguish No Words!')
         return
-    salt = NetWorkFunc.random(32768, 65536)
-    sign = NetWorkFunc.md5(appid + words + str(salt) + secretKey)
-    translate.add_param('salt', salt)
-    translate.add_param('sign', sign)
-    translate.add_param('q', words)
-    res = translate.get()
-    ans = ""
-    if 'trans_result' in res.keys():
-        for item in res['trans_result']:
-            ans += item['dst'] + '\n'
+    # salt = NetWorkFunc.random(32768, 65536)
+    # sign = NetWorkFunc.md5(appid + words + str(salt) + secretKey)
+    # translate.add_param('salt', salt)
+    # translate.add_param('sign', sign)
+    # translate.add_param('q', words)
+    # res = translate.get()
+    # ans = ""
+    # if 'trans_result' in res.keys():
+    #     for item in res['trans_result']:
+    #         ans += item['dst'] + '\n'
+    ans = baiduTrans.get_ans(words)
     ans_label.config(text='原文: ' + words + '\n百度翻译: ' + ans)
     # print('原文: ' + words + '\n百度翻译: ' + ans)
 
@@ -123,6 +129,8 @@ def api_init():
     secretKey = id['translate']['secretKey']
     global baiduOCR
     baiduOCR = OCR.BaiduOCR(id['OCR']['apiKey'], id['OCR']['SecretKey'])
+    global baiduTrans
+    baiduTrans = Translate.BaiduTrans(id['translate']['appid'], id['translate']['secretKey'])
     # request_url = "https://aip.baidubce.com/oauth/2.0/token"
     # params = {'grant_type': 'client_credentials', 'client_id': id['OCR']['apiKey'],
     #           'client_secret': id['OCR']['SecretKey']}
@@ -131,13 +139,13 @@ def api_init():
     # if response:
     #     access_token = response.json()['access_token']
 
-    translate.set_host('api.fanyi.baidu.com')
-    translate.set_url('/api/trans/vip/translate')
-    translate.connect()
-    translate.add_param('appid', appid)
-    translate.add_param('secretKey', secretKey)
-    translate.add_param('from', lan[fromString.get()][1])
-    translate.add_param('to', lan[toString.get()][1])
+    # translate.set_host('api.fanyi.baidu.com')
+    # translate.set_url('/api/trans/vip/translate')
+    # translate.connect()
+    # translate.add_param('appid', appid)
+    # translate.add_param('secretKey', secretKey)
+    # translate.add_param('from', lan[fromString.get()][1])
+    # translate.add_param('to', lan[toString.get()][1])
 
     # ocr.set_url('https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=' + access_token)
     # ocr.set_param('language_type', lan[fromString.get()][0])
@@ -242,7 +250,8 @@ def set_cb():
 
 
 mainWin_alpha = 0.8
-mainWin_top = None
+mainWin_top = tk.IntVar()
+mainWin_top.set(1)
 setting_scale = None
 
 
@@ -255,9 +264,11 @@ def setting():
     setting_scale.place(relx=0.5, rely=0.5, anchor='center', y=30, x=20, width=200, height=45)
     setting_label = tk.Label(setting_win, text='不透明度')
     setting_label.place(relx=0.5, rely=0.5, anchor='center', y=30, x=-120, height=45)
-    mainWin_top = tk.IntVar()
+
+    # mainWin_top = tk.IntVar()
     setting_cb = tk.Checkbutton(setting_win, text='锁定前置窗口', variable=mainWin_top, command=set_cb)
-    setting_cb.select()
+    if mainWin_top.get():
+        setting_cb.select()
     setting_cb.place(relx=0.5, rely=0.5, anchor='center', y=10, width=100)
     setting_scale.set(mainWin_alpha * 100)
 

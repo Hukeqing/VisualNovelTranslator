@@ -15,6 +15,7 @@ class BaiduOCR:
         self.secret_key = secret_key
         self.access_token = None
         self.ocr = HttpQuests()
+        self.lan = 'jp'
         self.init()
 
     def init(self):
@@ -32,7 +33,7 @@ class BaiduOCR:
             # usually Network error
             pass
         self.ocr.set_url('https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=' + self.access_token)
-        self.ocr.set_param('language_type', BaiduOCR.lan['jp'])
+        self.ocr.set_param('language_type', BaiduOCR.lan[self.lan])
         self.ocr.set_head('content-type', 'application/x-www-form-urlencoded')
 
     def get_ans(self, img):
@@ -43,3 +44,7 @@ class BaiduOCR:
             for item in response['words_result']:
                 words += item['words']
         return words
+
+    def change_lan(self, lan):
+        self.lan = lan
+        self.ocr.set_param('language_type', BaiduOCR.lan[self.lan])
