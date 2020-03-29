@@ -12,7 +12,7 @@ screen = ScreenCut()
 # translate = HttpClient()
 # ocr = HttpQuests()
 
-lan = {'中文': ('CHN_ENG', 'zh'), '日语': ('JAP', 'jp'), '英语': ('ENG', 'en'), '韩语': ('KOR', 'kor')}
+lan = {'中文': 'zh', '日语': 'jp', '英语': 'en', '韩语': 'kor'}
 
 mainWin = tk.Tk()
 mainWin.title('Visual Novel Translator')
@@ -22,11 +22,12 @@ mainWin.wm_attributes("-alpha", 0.8)
 mainWin.geometry('1000x150+300+300')
 
 ans_label = tk.Label(mainWin, background="#cccccc", font=('Microsoft YaHei', 10), anchor='center', justify='center')
-ans_label.place(relx=0.5, rely=0.5, anchor='center', width=800, height=125)
+ans_label.place(relx=0.5, rely=0.5, anchor='center')
 # ans_label.config(state='disabled')
 
 menubar = tk.Menu(mainWin)
 mainWin.config(menu=menubar)
+mainWin.bind('<Configure>', lambda event: ans_label.config(wraplength=mainWin.winfo_width() - 20))
 
 log_variable = tk.StringVar()
 
@@ -60,15 +61,15 @@ def change_from(x):
     cur = lan[fromString.get()]
     # ocr.set_param('language_type', cur[0])
     # translate.add_param('from', cur[1])
-    baiduOCR.change_lan(cur[1])
-    baiduTrans.set_from_lan(cur[1])
+    baiduOCR.change_lan(cur)
+    baiduTrans.set_from_lan(cur)
 
 
 @log('To Changed')
 def change_to(x):
     cur = lan[toString.get()]
     # translate.add_param('to', cur[1])
-    baiduTrans.set_to_lan(cur[1])
+    baiduTrans.set_to_lan(cur)
 
 
 def quit_app():
@@ -115,7 +116,7 @@ def trans():
     #     for item in res['trans_result']:
     #         ans += item['dst'] + '\n'
     ans = baiduTrans.get_ans(words)
-    ans_label.config(text='原文: ' + words + '\n百度翻译: ' + ans)
+    ans_label.config(text='原文: ' + words + '\n\n' + ans)
     # print('原文: ' + words + '\n百度翻译: ' + ans)
 
 
@@ -260,6 +261,8 @@ def setting():
     global setting_scale
     setting_win = tk.Toplevel()
     setting_win.geometry('300x150+100+100')
+    setting_win.resizable(0, 0)
+    # setting_win.bind('<Configure>', func=lambda x: print(x))
     setting_scale = tk.Scale(setting_win, from_=0, to=100, orient='horizontal', command=set_alpha)
     setting_scale.place(relx=0.5, rely=0.5, anchor='center', y=30, x=20, width=200, height=45)
     setting_label = tk.Label(setting_win, text='不透明度')
@@ -278,11 +281,17 @@ def setting():
     from_combobox.bind("<<ComboboxSelected>>", change_from)
     from_combobox.place(relx=0.5, rely=0.5, anchor='center', y=-45)
 
+    from_label = tk.Label(setting_win, text='原语言')
+    from_label.place(relx=0.5, rely=0.5, anchor='center', y=-45, x=-120)
+
     to_combobox = tk.ttk.Combobox(setting_win, textvariable=toString, width=10)
     to_combobox['value'] = tuple(lan.keys())
     to_combobox.current(0)
     to_combobox.bind("<<ComboboxSelected>>", change_to)
     to_combobox.place(relx=0.5, rely=0.5, anchor='center', y=-20)
+
+    to_label = tk.Label(setting_win, text='翻译语言')
+    to_label.place(relx=0.5, rely=0.5, anchor='center', y=-20, x=-120)
 
 
 menubar.add_command(label='Set Rect', command=set_rect)

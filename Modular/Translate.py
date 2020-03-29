@@ -28,7 +28,7 @@ class BaiduTrans:
         self.translate.add_param('sign', sign)
         self.translate.add_param('q', words)
         res = self.translate.get()
-        ans = ""
+        ans = "百度: "
         try:
             if 'trans_result' in res.keys():
                 for item in res['trans_result']:
@@ -36,6 +36,7 @@ class BaiduTrans:
         except Exception as e:
             print(e)
             print(res)
+            ans += '<ERROR>'
         return ans
 
     def set_from_lan(self, lan):
