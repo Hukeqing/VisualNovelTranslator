@@ -49,3 +49,6 @@ class BaiduTrans:
 
     def close(self):
         self.translate.close()
+
+
+trans_api_dict = {'baidu': BaiduTrans}

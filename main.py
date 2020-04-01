@@ -9,8 +9,6 @@ from Modular import OCR, Translate
 from SystemAPI import *
 
 screen = ScreenCut()
-# translate = HttpClient()
-# ocr = HttpQuests()
 
 lan = {'中文': 'zh', '日语': 'jp', '英语': 'en', '韩语': 'kor'}
 
@@ -36,12 +34,11 @@ fromString.set('日语')
 toString = tk.StringVar()
 toString.set('中文')
 
-appid = ""
-secretKey = ""
 fromLag = ""
 
 baiduOCR: OCR.BaiduOCR
-baiduTrans: Translate.BaiduTrans
+# baiduTrans: Translate.BaiduTrans
+transAPI = list()
 
 
 def log(text):
@@ -58,24 +55,26 @@ def log(text):
 
 @log('From Changed')
 def change_from(x):
+    print(x)
     cur = lan[fromString.get()]
     # ocr.set_param('language_type', cur[0])
     # translate.add_param('from', cur[1])
     baiduOCR.change_lan(cur)
-    baiduTrans.set_from_lan(cur)
+    transAPI[0].set_from_lan(cur)
 
 
 @log('To Changed')
 def change_to(x):
+    print(x)
     cur = lan[toString.get()]
     # translate.add_param('to', cur[1])
-    baiduTrans.set_to_lan(cur)
+    transAPI[0].set_to_lan(cur)
 
 
 def quit_app():
     mainWin.quit()
     # translate.close()
-    baiduTrans.close()
+    transAPI[0].close()
     exit(0)
 
 
@@ -95,65 +94,33 @@ def show():
 def trans():
     img = screen.cut()
 
-    # ocr.set_param('image', NetWorkFunc.base64(img))
-    # response = ocr.post()
     words = baiduOCR.get_ans(img)
-    # if response is not None and 'words_result' in response.keys():
-    #     print(response)
-    #     for item in response['words_result']:
-    #         words += item['words'] + '\n'
+    print(words)
     if words == "":
         ans_label.config(text='Distinguish No Words!')
         return
-    # salt = NetWorkFunc.random(32768, 65536)
-    # sign = NetWorkFunc.md5(appid + words + str(salt) + secretKey)
-    # translate.add_param('salt', salt)
-    # translate.add_param('sign', sign)
-    # translate.add_param('q', words)
-    # res = translate.get()
-    # ans = ""
-    # if 'trans_result' in res.keys():
-    #     for item in res['trans_result']:
-    #         ans += item['dst'] + '\n'
-    ans = baiduTrans.get_ans(words)
+
+    ans = transAPI[0].get_ans(words)
     ans_label.config(text='原文: ' + words + '\n\n' + ans)
-    # print('原文: ' + words + '\n百度翻译: ' + ans)
 
 
 def api_init():
     f = open('setting.json')
-    id = json.load(f)
+    json_data = json.load(f)
     f.close()
-    global appid
-    appid = id['translate']['appid']
-    global secretKey
-    secretKey = id['translate']['secretKey']
+    # OCR
     global baiduOCR
-    baiduOCR = OCR.BaiduOCR(id['OCR']['apiKey'], id['OCR']['SecretKey'])
-    global baiduTrans
-    baiduTrans = Translate.BaiduTrans(id['translate']['appid'], id['translate']['secretKey'])
-    # request_url = "https://aip.baidubce.com/oauth/2.0/token"
-    # params = {'grant_type': 'client_credentials', 'client_id': id['OCR']['apiKey'],
-    #           'client_secret': id['OCR']['SecretKey']}
-    # response = requests.post(request_url, data=params)
-    # access_token = ""
-    # if response:
-    #     access_token = response.json()['access_token']
-
-    # translate.set_host('api.fanyi.baidu.com')
-    # translate.set_url('/api/trans/vip/translate')
-    # translate.connect()
-    # translate.add_param('appid', appid)
-    # translate.add_param('secretKey', secretKey)
-    # translate.add_param('from', lan[fromString.get()][1])
-    # translate.add_param('to', lan[toString.get()][1])
-
-    # ocr.set_url('https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=' + access_token)
-    # ocr.set_param('language_type', lan[fromString.get()][0])
-    # ocr.set_head('content-type', 'application/x-www-form-urlencoded')
+    baiduOCR = OCR.BaiduOCR(json_data['OCR']['apiKey'], json_data['OCR']['SecretKey'])
+    # Trans
+    # global trans
+    trans_data: dict = json_data['translate']
+    for key, item in trans_data.items():
+        tr = Translate.trans_api_dict[key]
+        transAPI.append(tr(item['appid'], item['secretKey']))
 
 
 def on_press(event):
+    print(event)
     global on_drop
     global pressMousePosition
     global rect
@@ -182,11 +149,8 @@ def on_release(event):
     on_drop = False
     print('Release')
     screen.add_mouse_point()
-    # rect_win.withdraw()
     background_win.withdraw()
     mainWin.deiconify()
-    # img_label.destroy()
-    img_label = None
     screen.clear()
     screen.set_rect(pressMousePosition.x, pressMousePosition.y,
                     event.x_root, event.y_root)
@@ -194,6 +158,7 @@ def on_release(event):
 
 
 def on_exit(event):
+    print(event)
     # global img_label
     global pressMousePosition
     print('Exit set')
@@ -241,6 +206,7 @@ def show_log():
 
 
 def set_alpha(x):
+    print(x)
     global mainWin_alpha
     mainWin_alpha = setting_scale.get() / 100
     mainWin.wm_attributes("-alpha", mainWin_alpha)
