@@ -2,6 +2,7 @@ import json
 import time
 import tkinter as tk
 import tkinter.ttk
+import tkinter.scrolledtext
 
 from PIL import ImageTk
 
@@ -34,7 +35,7 @@ fromString.set('日语')
 toString = tk.StringVar()
 toString.set('中文')
 
-fromLag = ""
+transHistory = str()
 
 baiduOCR: OCR.BaiduOCR
 # baiduTrans: Translate.BaiduTrans
@@ -55,7 +56,7 @@ def log(text):
 
 @log('From Changed')
 def change_from(x):
-    print(x)
+    # print(x)
     cur = lan[fromString.get()]
     # ocr.set_param('language_type', cur[0])
     # translate.add_param('from', cur[1])
@@ -65,7 +66,7 @@ def change_from(x):
 
 @log('To Changed')
 def change_to(x):
-    print(x)
+    # print(x)
     cur = lan[toString.get()]
     # translate.add_param('to', cur[1])
     transAPI[0].set_to_lan(cur)
@@ -80,13 +81,13 @@ def quit_app():
 
 @log('Clear')
 def clear():
-    print("clear")
+    # print("clear")
     screen.clear()
 
 
 @log('Show')
 def show():
-    print("show")
+    # print("show")
     screen.show_region()
 
 
@@ -99,9 +100,13 @@ def trans():
     if words == "":
         ans_label.config(text='Distinguish No Words!')
         return
-
-    ans = transAPI[0].get_ans(words)
-    ans_label.config(text='原文: ' + words + '\n\n' + ans)
+    ans = '原文: ' + words + '\n'
+    for tra in transAPI:
+        ans += '\n' + tra.get_ans(words)
+    # ans = transAPI[0].get_ans(words)
+    ans_label.config(text=ans)
+    global transHistory
+    transHistory = ans + '-' * 20 + '\n' + transHistory
 
 
 def api_init():
@@ -120,7 +125,7 @@ def api_init():
 
 
 def on_press(event):
-    print(event)
+    # print(event)
     global on_drop
     global pressMousePosition
     global rect
@@ -158,7 +163,7 @@ def on_release(event):
 
 
 def on_exit(event):
-    print(event)
+    # print(event)
     # global img_label
     global pressMousePosition
     print('Exit set')
@@ -195,14 +200,6 @@ def set_rect():
     rect_canvas.pack_forget()
     rect_canvas.config(width=img.width(), height=img.height())
     rect_canvas.pack()
-
-
-def show_log():
-    log_win = tk.Toplevel()
-    log_win.grab_set()
-    log_label = tk.Label(log_win, text=log_variable.get())
-    log_label.place(relx=0.5, rely=0.5, anchor='center')
-    log_win.mainloop()
 
 
 def set_alpha(x):
@@ -260,10 +257,30 @@ def setting():
     to_label.place(relx=0.5, rely=0.5, anchor='center', y=-20, x=-120)
 
 
+def history():
+    history_win = tk.Toplevel()
+    history_win.geometry('1000x400+300+300')
+    history_win.attributes('-topmost', 1)
+    history_win.grab_set()
+    history_label = tk.scrolledtext.ScrolledText(history_win)
+    history_label.insert('end', transHistory)
+    history_label.place(relx=0.5, rely=0.5, anchor='center', width=800, height=300)
+    history_win.mainloop()
+
+
+def show_log():
+    log_win = tk.Toplevel()
+    log_win.grab_set()
+    log_label = tk.Label(log_win, text=log_variable.get())
+    log_label.place(relx=0.5, rely=0.5, anchor='center')
+    log_win.mainloop()
+
+
 menubar.add_command(label='Set Rect', command=set_rect)
 menubar.add_command(label='Show Rect', command=show)
 menubar.add_command(label='Translate', command=trans)
 menubar.add_command(label='Setting', command=setting)
+menubar.add_command(label='History', command=history)
 menubar.add_command(label='Log', command=show_log)
 api_init()
 
