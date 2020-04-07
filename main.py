@@ -3,6 +3,7 @@ import time
 import tkinter as tk
 import tkinter.ttk
 import tkinter.scrolledtext
+import tkinter.messagebox
 
 from PIL import ImageTk
 
@@ -12,6 +13,7 @@ from SystemAPI import *
 screen = ScreenCut()
 
 lan = {'中文': 'zh', '日语': 'jp', '英语': 'en', '韩语': 'kor'}
+replace_word = dict()
 
 mainWin = tk.Tk()
 mainWin.title('Visual Novel Translator')
@@ -38,7 +40,6 @@ toString.set('中文')
 transHistory = str()
 
 baiduOCR: OCR.BaiduOCR
-# baiduTrans: Translate.BaiduTrans
 transAPI = list()
 
 
@@ -93,17 +94,18 @@ def show():
 
 @log('Translate')
 def trans():
+    ans_label.config(text='Translating')
     img = screen.cut()
 
     words = baiduOCR.get_ans(img)
-    print(words)
     if words == "":
         ans_label.config(text='Distinguish No Words!')
         return
     ans = '原文: ' + words + '\n'
+    for key, value in replace_word.items():
+        words = words.replace(key, value)
     for tra in transAPI:
         ans += '\n' + tra.get_ans(words)
-    # ans = transAPI[0].get_ans(words)
     ans_label.config(text=ans)
     global transHistory
     transHistory = ans + '-' * 20 + '\n' + transHistory
@@ -257,6 +259,38 @@ def setting():
     to_label.place(relx=0.5, rely=0.5, anchor='center', y=-20, x=-120)
 
 
+replace_setting_text: tk.scrolledtext.ScrolledText
+
+
+def save_replace():
+    res: str = replace_setting_text.get('1.0', tkinter.END)
+    global replace_word
+    replace_word = dict()
+    try:
+        for line in res.split('\n'):
+            if line == '':
+                continue
+            data = line.split(':')
+            replace_word[data[0]] = data[1]
+    except Exception as e:
+        print(e)
+        tkinter.messagebox.showerror('Error', 'Text format error')
+
+
+def replace_setting():
+    global replace_setting_text
+    replace_setting_win = tk.Toplevel()
+    replace_setting_win.geometry('300x400+300+300')
+    replace_setting_win.attributes('-topmost', 1)
+    replace_setting_text = tk.scrolledtext.ScrolledText(replace_setting_win)
+    replace_setting_text.place(relx=0.5, rely=0.5, y=-20, anchor='center', width=250, height=350)
+    for key, value in replace_word.items():
+        replace_setting_text.insert(tkinter.END, key + ' : ' + value + '\n')
+    replace_setting_button = tk.Button(replace_setting_win, text='Save', command=save_replace)
+    replace_setting_button.place(relx=0.5, rely=1, y=-20, anchor='center')
+    replace_setting_win.mainloop()
+
+
 def history():
     history_win = tk.Toplevel()
     history_win.geometry('1000x400+300+300')
@@ -279,6 +313,7 @@ def show_log():
 menubar.add_command(label='Set Rect', command=set_rect)
 menubar.add_command(label='Show Rect', command=show)
 menubar.add_command(label='Translate', command=trans)
+menubar.add_command(label='Replace', command=replace_setting)
 menubar.add_command(label='Setting', command=setting)
 menubar.add_command(label='History', command=history)
 menubar.add_command(label='Log', command=show_log)
